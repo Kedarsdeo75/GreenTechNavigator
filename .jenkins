@@ -2,21 +2,20 @@ pipeline {
     agent any
     
     environment {
-        PATH = "C:\\Users\\sansk\\Downloads\\apache-maven-3.9.6\\bin;$PATH"
-        REPO_PATH = "C:\\ProgramData\\Jenkins\\.jenkins\\workspace\\GreenCodeScanPipeline"
-        PYTHON_PATH = "C:\\Users\\sansk\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
-        CAST_HIGHLIGHT_PATH = "C:\\Users\\sansk\\Downloads\\Highlight-Automation-Command"
-        PYTEST_PATH = "C:\\Users\\sansk\\AppData\\Local\\Programs\\Python\\Python312\\Scripts\\pytest.exe"
-        SHAREPOINT_PS_SCRIPT_PATH = 'C:\\ProgramData\\Jenkins\\.jenkins\\workspace\\GreenCodeScanPipeline\\upload_to_sharepoint.ps1'
-        CLIENT_NAME = "ZF"
+	    PROJECT_NAME = "Sample Application"
+		REPO_PATH = "C:\\ProgramData\\Jenkins\\.jenkins\\workspace\\GreenTechNavigator@2"
+		PYTHON_PATH = "F:\\python\\python.exe"
+		PYTEST_PATH = "F:\\python\\Scripts\\pytest.exe"
+		PATH = "E:\\maven\\apache-maven-3.8.6-bin\\apache-maven-3.8.6\\bin;$PATH"
+		SHAREPOINT_PS_SCRIPT_PATH = 'C:\\ProgramData\\Jenkins\\.jenkins\\workspace\\GreenTechNavigator@2\\upload_to_sharepoint.ps1'
     }
     
     stages {
         stage('Stage 1: Clone Repository') {
             steps {
-                echo "Client Name: ${env.CLIENT_NAME}"
+                echo "Project Name: ${env.PROJECT_NAME}"
                 ws("${env.REPO_PATH}") {
-                    git branch: 'main', credentialsId: '65fd2953-20c8-47ac-90a5-de4ab6edf5a', url: 'https://github.com/sanskar22003/GreenCodeScan.git'
+                    git branch: 'main', credentialsId: '4052c696-741c-4e3d-a988-e7263162018e', url: 'https://github.com/Kedarsdeo75/GreenTechNavigator.git'
                 }
             }
         }
