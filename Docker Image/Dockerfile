@@ -13,7 +13,7 @@ COPY GreenCodeRefiner.py /app/
 COPY track_emissions.py /app/
 COPY compare_emissions.py /app/
 COPY upload_to_sharePoint.ps1 /app/
-COPY .env /app/
+COPY .env.unix /app/
 
 # Install Python dependencies (if any)
 COPY requirements.txt /app/
