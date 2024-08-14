@@ -1,0 +1,84 @@
+pipeline {
+    agent any
+    
+    environment {
+        PATH = "C:\\Users\\sansk\\Downloads\\apache-maven-3.9.6\\bin;$PATH"
+        REPO_PATH = "C:\\ProgramData\\Jenkins\\.jenkins\\workspace\\GreenCodeScanPipeline"
+        PYTHON_PATH = "C:\\Users\\sansk\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+        CAST_HIGHLIGHT_PATH = "C:\\Users\\sansk\\Downloads\\Highlight-Automation-Command"
+        PYTEST_PATH = "C:\\Users\\sansk\\AppData\\Local\\Programs\\Python\\Python312\\Scripts\\pytest.exe"
+        SHAREPOINT_PS_SCRIPT_PATH = 'C:\\ProgramData\\Jenkins\\.jenkins\\workspace\\GreenCodeScanPipeline\\upload_to_sharepoint.ps1'
+        CLIENT_NAME = "ZF"
+    }
+    
+    stages {
+        stage('Stage 1: Clone Repository') {
+            steps {
+                echo "Client Name: ${env.CLIENT_NAME}"
+                ws("${env.REPO_PATH}") {
+                    git branch: 'main', credentialsId: '65fd2953-20c8-47ac-90a5-de4ab6edf5a', url: 'https://github.com/sanskar22003/GreenCodeScan.git'
+                }
+            }
+        }
+        stage('Stage 2: Track Server Emissions') {
+            steps {
+                dir("${env.REPO_PATH}") {
+                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                        bat "${env.PYTHON_PATH} server_emissions.py"
+                    }
+                }
+            }
+        }
+        stage('Stage 3: Green Code Refiner') {
+            steps {
+                dir("${env.REPO_PATH}") {
+                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                        script {
+                            def result = ''
+                            while (true) {
+                                result = bat(script: "${env.PYTHON_PATH} GreenCodeRefiner.py", returnStdout: true).trim()
+                                if (result.contains('Script-Has-Uploaded-All-Files')) {
+                                    break
+                                } else if (result.contains('Script-Has-Remain-Some-Files-To-Uploaded')) {
+                                    echo "Rerunning GreenCodeRefiner.py due to pending tasks..."
+                                } else {
+                                    error "Unexpected result from GreenCodeRefiner.py: ${result}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Stage 4: Dynamic Code Analysis') {
+            steps {
+                dir("${env.REPO_PATH}") {
+                    withEnv(["PYTEST=${env.PYTEST_PATH}"]) {
+                        catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                            bat "${env.PYTHON_PATH} track_emissions.py"
+                        }
+                    }
+                }
+            }
+        }
+        stage('Stage 5: Compare emission') {
+            steps {
+                dir("${env.REPO_PATH}") {
+                    withEnv(["PYTEST=${env.PYTEST_PATH}"]) {
+                        catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                            bat "${env.PYTHON_PATH} compare_emissions.py"
+                        }
+                    }
+                }
+            }
+        }
+        stage('Stage 6: Update Dashboard') {
+            steps {
+                powershell """
+                & '${env.SHAREPOINT_PS_SCRIPT_PATH}'
+                """
+            }
+        }
+    }
+}
