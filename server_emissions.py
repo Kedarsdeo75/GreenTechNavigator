@@ -15,6 +15,10 @@ EXCEL_FILE = os.path.join(RESULT_DIR, 'server_data.xlsx')
 SLEEP_TIME = 20  # Sleep for 20 seconds before collecting data again
 RUN_TIME = 60 * 2  # Run for 1 hour
 
+def ensure_result_directory_exists():
+    if not os.path.exists(RESULT_DIR): 
+        os.makedirs(RESULT_DIR)
+
 def get_system_info():
     hostname = socket.gethostname()
     ip_address = socket.gethostbyname(hostname)
@@ -87,6 +91,7 @@ def calculate_co2_emission(energy_consumption):
     return co2_emission
 
 def update_excel(data):
+    ensure_result_directory_exists()
     try:
         df = pd.read_excel(EXCEL_FILE)
     except FileNotFoundError:
