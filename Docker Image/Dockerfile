@@ -28,4 +28,4 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Run the scripts in sequence
-CMD ["bash", "-c", "python server_emissions.py && python GreenCodeRefiner.py && python track_emissions.py && python compare_emissions.py && pwsh upload_to_sharePoint.ps1"]
+CMD ["bash", "-c", "python server_emissions.py && python GreenCodeRefiner.py && python track_emissions.py && python compare_emissions.py && pwsh upload_to_sharepoint.ps1"]
