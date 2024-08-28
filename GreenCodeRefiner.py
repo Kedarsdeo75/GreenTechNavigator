@@ -7,11 +7,12 @@ from dotenv import load_dotenv
 from openai import AzureOpenAI
 
 # Load environment variables
-load_dotenv(dotenv_path=".env", verbose=True, override=True)
+env_path = os.path.abspath(".env")
+load_dotenv(dotenv_path=env_path, verbose=True, override=True)
 
-# Define directories using environment variables
-source_directory = os.getenv('SOURCE_DIRECTORY')
-green_refined_directory = os.getenv('GREEN_REFINED_DIRECTORY')
+# Remove the '.env' part to get the SOURCE_DIRECTORY
+source_directory = os.path.dirname(env_path)
+green_refined_directory = os.path.join(source_directory, 'Green_Refined_Files')
 temp_directory = os.path.join(green_refined_directory, 'temp')
 
 # Initialize AzureOpenAI client using environment variables
@@ -20,6 +21,13 @@ client = AzureOpenAI(
     api_version=os.getenv('AZURE_API_VERSION'),
     azure_endpoint=os.getenv('AZURE_ENDPOINT')
 )
+
+if not os.path.exists(green_refined_directory):
+    # Create the directory
+    os.makedirs(green_refined_directory)
+    print(f"Directory '{green_refined_directory}' created successfully!")
+else:
+    print(f"Directory '{green_refined_directory}' already exists.")
 
 unique_name = f"GreenCodeRefiner {uuid.uuid4()}"
 # Create an assistant
@@ -200,18 +208,33 @@ thread_messages = client.beta.threads.messages.list(thread.id)
 print(thread_messages.model_dump_json(indent=2))
 
 # Check if all relevant files have been refined
-source_files = {os.path.relpath(os.path.join(root, file), source_directory) for root, _, files in os.walk(source_directory) for file in files if file.endswith(('.py', '.java', '.xml', '.php', '.cpp'))}
-refined_files = {os.path.relpath(os.path.join(root, file), green_refined_directory) for root, _, files in os.walk(green_refined_directory) for file in files if file.endswith(('.py', '.java', '.xml', '.php', '.cpp'))}
+source_files = {
+    os.path.relpath(os.path.join(root, file), source_directory)
+    for root, _, files in os.walk(source_directory)
+    for file in files
+    if file.endswith(('.py', '.java', '.xml', '.php', '.cpp'))
+}
+
+refined_files = {
+    os.path.relpath(os.path.join(root, file), green_refined_directory)
+    for root, _, files in os.walk(green_refined_directory)
+    for file in files
+    if file.endswith(('.py', '.java', '.xml', '.php', '.cpp'))
+}
+
+print("Source files:", source_files)
+print("Refined files:", refined_files)
 
 # Exclude specific files and the Green_Refined_Files directory from comparison
-excluded_from_comparison = excluded_files.union(
-    {os.path.relpath(file, source_directory) for file in [
-        os.path.join(source_directory, 'Green_Refined_Files')
-    ]}
-)
+excluded_from_comparison = excluded_files.union({
+    os.path.relpath(os.path.join(source_directory, 'Green_Refined_Files'), source_directory)
+})
 
-source_files -= excluded_from_comparison
-refined_files -= excluded_from_comparison
+# Remove excluded files from the comparison
+source_files = {
+    file for file in source_files
+    if not (file in excluded_from_comparison or file.startswith('Green_Refined_Files'))
+}
 
 if source_files.issubset(refined_files):
     print('Script-Has-Uploaded-All-Files')
