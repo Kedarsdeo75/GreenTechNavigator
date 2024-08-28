@@ -24,5 +24,16 @@ RUN apt-get update && \
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Command to copy scripts, .env file, and SharePoint DLLs to the source directory on the host system
-CMD ["bash", "-c", "cp /app/*.py /app/.env ${SOURCE_DIRECTORY} && cd ${SOURCE_DIRECTORY} && python server_emissions.py && python GreenCodeRefiner.py && python track_emissions.py && python compare_emissions.py"]
+# Command to conditionally copy scripts and then run them
+CMD ["bash", "-c", "\
+    mkdir -p ${SOURCE_DIRECTORY} && \
+    for file in /app/*.py /app/.env; do \
+        if [ ! -f ${SOURCE_DIRECTORY}/$(basename $file) ]; then \
+            cp $file ${SOURCE_DIRECTORY}/; \
+        fi; \
+    done && \
+    cd ${SOURCE_DIRECTORY} && \
+    python server_emissions.py && \
+    python GreenCodeRefiner.py && \
+    python track_emissions.py && \
+    python compare_emissions.py"]
