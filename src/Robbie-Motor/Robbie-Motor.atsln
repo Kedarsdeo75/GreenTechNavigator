@@ -1,0 +1,29 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Atmel Studio Solution File, Format Version 11.00
+Project("{E66E83B9-2572-4076-B26E-6BE79FF3018A}") = "Robbie-Motor", "Robbie-Motor.cppproj", "{45B5BD5B-B8D3-498B-B91E-602E9058EF39}"
+	ProjectSection(ProjectDependencies) = postProject
+		{0454A32E-F32D-4E04-8CD5-737C9074E0D7} = {0454A32E-F32D-4E04-8CD5-737C9074E0D7}
+	EndProjectSection
+EndProject
+Project("{E66E83B9-2572-4076-B26E-6BE79FF3018A}") = "CDaguMC", "..\CDaguMC\CDaguMC.cppproj", "{0454A32E-F32D-4E04-8CD5-737C9074E0D7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|AVR = Debug|AVR
+		Release|AVR = Release|AVR
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{45B5BD5B-B8D3-498B-B91E-602E9058EF39}.Debug|AVR.ActiveCfg = Debug|AVR
+		{45B5BD5B-B8D3-498B-B91E-602E9058EF39}.Debug|AVR.Build.0 = Debug|AVR
+		{45B5BD5B-B8D3-498B-B91E-602E9058EF39}.Release|AVR.ActiveCfg = Release|AVR
+		{45B5BD5B-B8D3-498B-B91E-602E9058EF39}.Release|AVR.Build.0 = Release|AVR
+		{0454A32E-F32D-4E04-8CD5-737C9074E0D7}.Debug|AVR.ActiveCfg = Debug|AVR
+		{0454A32E-F32D-4E04-8CD5-737C9074E0D7}.Debug|AVR.Build.0 = Debug|AVR
+		{0454A32E-F32D-4E04-8CD5-737C9074E0D7}.Release|AVR.ActiveCfg = Release|AVR
+		{0454A32E-F32D-4E04-8CD5-737C9074E0D7}.Release|AVR.Build.0 = Release|AVR
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
