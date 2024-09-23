@@ -111,7 +111,8 @@ try:
             "4. If the code runs successfully, share the code as a file that can be downloaded. "
             "5. If the code is unsuccessful, display the error message and try to revise the code and rerun."
         ),
-        model="gpt-4o-mini",
+        # model="gpt-4o-mini",
+        model="GPT4o",
         tools=[{"type": "code_interpreter"}]
     )
     logging.info(f"Assistant '{unique_name}' created successfully.")
