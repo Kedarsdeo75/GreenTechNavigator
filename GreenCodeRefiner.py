@@ -136,19 +136,6 @@ def identify_source_files(directory, extensions, excluded_files):
             if file.endswith(tuple(extensions)):
                 yield os.path.join(root, file)
 
-# Function to load prompts from the .env file
-def load_prompts_from_env():
-    prompts = []
-    for key in os.environ:
-        if key.startswith("PROMPT_"):
-            # Split the prompt and its flag
-            prompt_data = os.getenv(key).split(", ")
-            if len(prompt_data) == 2 and prompt_data[1].lower() == "y":
-                prompts.append(prompt_data[0])
-            else:
-                logging.warning(f"Skipping prompt '{key}' due to missing or incorrect flag.")
-    return prompts
-
 # Function to create unit test files for source files without a test file
 def create_unit_test_files(file_list):
     prompt_testcase = get_env_variable('PROMPT_GENERATE_TESTCASES', is_required=False)
@@ -202,7 +189,6 @@ def create_unit_test_files(file_list):
         # Handle the retrieved data for the test case creation...
         logging.info(f"Unit test file created successfully for {file_name}")
 
-
         messages = client.beta.threads.messages.list(thread_id=thread.id)
         data = json.loads(messages.model_dump_json(indent=2))
         code = None
@@ -214,7 +200,6 @@ def create_unit_test_files(file_list):
             print(f"Unit test file created: {test_file_path}")
         else:
             print(f"Failed to create unit test for file: {file_path}")
-
 
 def apply_green_prompts(file_id, prompt, refined_file_path):
     logging.info(f"Applying prompt: {prompt} to file {file_id}")
@@ -317,16 +302,6 @@ while file_list:
         else:
             print(f"Failed to apply prompt: '{prompt}' to {file_name}")
 
-    # # Move the refined file after all prompts have been applied
-    # if refined_success:
-    #     final_file_path = os.path.join(green_code_directory, relative_path)
-    #     ensure_directory_structure(os.path.dirname(final_file_path))
-    #     os.rename(refined_temp_file_path, final_file_path)
-    #     print(f"File refined and moved: {final_file_path}")
-    # else:
-    #     print(f"Failed to refine file: {file_path}")
-
-    # Move the file after all prompts have been applied, regardless of success
     final_file_path = os.path.join(green_code_directory, relative_path)
     ensure_directory_structure(os.path.dirname(final_file_path))
 
