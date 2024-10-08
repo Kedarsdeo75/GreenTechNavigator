@@ -8,12 +8,14 @@ import logging
 import requests 
 from dotenv import load_dotenv
 from openai import AzureOpenAI
-
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+# Define Base Directory
+BASE_DIR = '/app/project'
+
 # Load environment variables
-env_path = os.path.abspath(".env")
+env_path = '/app/.env'
 load_dotenv(dotenv_path=env_path, verbose=True, override=True)
 
 # Import functions from refiner_functions.py
@@ -27,7 +29,6 @@ from RefinerFunction import (
     create_unit_test_files,
     apply_green_prompts
 )
-
 # Initialize AzureOpenAI client using environment variables
 try:
     api_key = get_env_variable('AZURE_API_KEY')
@@ -50,26 +51,21 @@ try:
 except EnvironmentError as e:
     logging.critical(f"Failed to initialize AzureOpenAI client: {e}")
     raise
-
-# Define directories
-source_directory = os.path.dirname(env_path)
+# Define directories based on BASE_DIR
+source_directory = BASE_DIR
 green_code_directory = os.path.join(source_directory, 'GreenCode')
 temp_directory = os.path.join(green_code_directory, 'temp')
 test_file_directory = os.path.join(source_directory, 'TestCases')
-
 # Store file extensions in a variable
 file_extensions = ['.py', '.java', '.xml', '.php', '.cpp', '.html', '.css', '.ts', '.rb']
-
 # Directory creation logic: Delete existing 'GreenCode' directory if it exists, then create a fresh one
 remove_directory(green_code_directory)
 os.makedirs(green_code_directory)
 logging.info(f"Directory '{green_code_directory}' created successfully!")
-
 # Ensure temp and test_file directories exist
 ensure_directory_structure(temp_directory)
 ensure_directory_structure(test_file_directory)
 unique_name = f"GreenCodeRefiner {uuid.uuid4()}"
-
 # Create an assistant
 try:
     assistant = client.beta.assistants.create(
@@ -89,7 +85,6 @@ try:
 except Exception as e:
     logging.critical(f"Failed to create Azure OpenAI assistant: {e}")
     raise
-
 # List of files to exclude from processing
 excluded_files = {
     'GreenCodeRefiner.py',
@@ -99,19 +94,14 @@ excluded_files = {
     'report_template.html',
     'details_template.html'
 }
-
 # Load prompts with "Yes" authentication
 prompts = load_prompts_from_env()
-
 # Define the list to store files
 file_list = list(identify_source_files(source_directory, file_extensions, excluded_files))
-
 # Step 1: Create unit test files for all source files without test files
 create_unit_test_files(client, assistant, file_list, test_file_directory)
-
 # Re-scan the source directory to include newly created test files
 file_list = list(identify_source_files(source_directory, file_extensions, excluded_files))
-
 # Upload and refine files
 while file_list:
     file_path = file_list.pop(0)

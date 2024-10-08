@@ -14,10 +14,18 @@ from jinja2 import Environment, FileSystemLoader, Template
 import plotly.io as pio
 import plotly.express as px
 import plotly.graph_objs as go
+import logging
+
 # Load environment variables
-env_path = os.path.abspath(".env")
+# Define Base Directory
+BASE_DIR = '/app/project'
+TEMP_DIR = '/app/'
+# Load environment variables
+env_path = os.path.join(BASE_DIR, ".env")
 load_dotenv(dotenv_path=env_path, verbose=True, override=True)
-SOURCE_DIRECTORY = os.path.dirname(env_path)
+
+# Define directories based on BASE_DIR
+SOURCE_DIRECTORY = BASE_DIR
 GREEN_REFINED_DIRECTORY = os.path.join(SOURCE_DIRECTORY, 'GreenCode')
 RESULT_DIR = os.path.join(SOURCE_DIRECTORY, 'Result')
 REPORT_DIR = os.path.join(SOURCE_DIRECTORY, 'Report')
@@ -104,6 +112,14 @@ def process_emissions_for_file(tracker, script_path, emissions_csv, file_type, r
     else:
         print(f"Emissions data collection failed for {script_name}")
 
+# # Function to process test execution for different file types
+# def process_files_by_type(base_dir, emissions_data_csv, result_dir, file_extension, excluded_files, tracker, test_command_generator):
+#     files = []
+#     for root, dirs, file_list in os.walk(base_dir):
+#         for script in file_list:
+#             if script.endswith(file_extension) and script not in excluded_files:
+#                 files.append(os.path.join(root, script))
+
 # Function to process test execution for different file types
 def process_files_by_type(base_dir, emissions_data_csv, result_dir, file_extension, excluded_files, excluded_dirs, tracker, test_command_generator):
     files = []
@@ -139,6 +155,12 @@ def get_cpp_test_command(script_path):
     return None
 def get_cs_test_command(script_path):
     return [os.getenv('NUNIT_PATH'), 'test', os.path.splitext(os.path.basename(script_path))[0] + '.dll'] if 'test' in script_path.lower() else None
+# # Refactored process_folder function
+# def process_folder(base_dir, emissions_data_csv, result_dir, suffix):
+#     excluded_files = ['server_emissions.py', 'GreenCodeRefiner.py', 'track_emissions.py', 'compare_emissions.py', 'GreenCode']
+#     # Ensure the 'result' directory exists
+#     if not os.path.exists(result_dir):
+#         os.makedirs(result_dir)
 
 # Refactored process_folder function
 def process_folder(base_dir, emissions_data_csv, result_dir, suffix, excluded_dirs):
@@ -148,8 +170,20 @@ def process_folder(base_dir, emissions_data_csv, result_dir, suffix, excluded_di
         print(f"Directory '{result_dir}' created successfully!")
     else:
         print(f"Directory '{result_dir}' already exists.")
-
-    # Check if the CSV file exists, if not, create it and write the header
+    
+    # # Adjust the path for emissions.csv to be within the 'result' directory with suffix
+    # emissions_csv = os.path.join(result_dir, f'emissions_{suffix}.csv')
+    # # Check if the CSV file exists, if not, create it and write the header
+    # if not os.path.exists(emissions_data_csv):
+    #     with open(emissions_data_csv, 'w', newline='') as file:
+    #         writer = csv.writer(file)
+    #         writer.writerow([
+    #             "Application name", "File Type", "Timestamp", "Emissions (gCO2eq)",
+    #             "Duration", "emissions_rate", "CPU Power (KWh)", "GPU Power (KWh)", "RAM Power (KWh)",
+    #             "CPU Energy (Wh)", "GPU Energy (KWh)", "RAM Energy (Wh)", "Energy Consumed (Wh)", "Test Results", "solution dir"
+    #         ])
+    # tracker = EmissionsTracker()
+        # Check if the CSV file exists, if not, create it and write the header
     if not os.path.exists(emissions_data_csv):
         with open(emissions_data_csv, 'w', newline='') as file:
             writer = csv.writer(file)
@@ -333,24 +367,41 @@ def prepare_detailed_data(result_dir):
 # Function to generate HTML report with Plotly
 def generate_html_report(result_dir):
     # Initialize Jinja2 environment
-    env = Environment(loader=FileSystemLoader(SOURCE_DIRECTORY))
+    env = Environment(loader=FileSystemLoader(TEMP_DIR))
     template_path = 'report_template.html'
     details_template_path = 'details_template.html'
 
     # Prepare detailed data
     solution_dirs, detailed_data = prepare_detailed_data(result_dir)
     
-    # Check if the template exists
-    if not os.path.isfile(os.path.join(SOURCE_DIRECTORY, details_template_path)):
+    # Check if the templates exist
+    if not os.path.isfile(os.path.join(TEMP_DIR, details_template_path)):
         print(f"Detailed HTML template file not found: {details_template_path}")
+        print(f"Looking in: {os.path.join(TEMP_DIR, details_template_path)}")
         return 
-    # Check if the template exists
-    if not os.path.isfile(os.path.join(SOURCE_DIRECTORY, template_path)):
+    if not os.path.isfile(os.path.join(TEMP_DIR, template_path)):
         print(f"HTML template file not found: {template_path}")
+        print(f"Looking in: {os.path.join(TEMP_DIR, template_path)}")
         return
 
-    template = env.get_template(template_path)
-    details_template = env.get_template(details_template_path)
+    # Load the templates
+    try:
+        template = env.get_template(template_path)
+        logging.info(f"Loaded template: {template_path}")
+    except Exception as e:
+        logging.error(f"Failed to load template {template_path}: {e}")
+        return
+    
+    try:
+        details_template = env.get_template(details_template_path)
+        logging.info(f"Loaded template: {details_template_path}")
+    except Exception as e:
+        logging.error(f"Failed to load template {details_template_path}: {e}")
+        return
+
+
+    # template = env.get_template(template_path)
+    # details_template = env.get_template(details_template_path)
 
     before_csv = os.path.join(result_dir, 'main_before_emissions_data.csv')
     after_csv = os.path.join(result_dir, 'main_after_emissions_data.csv')
@@ -560,13 +611,13 @@ def generate_html_report(result_dir):
 
     # === Feature 2: Top Five Tables ===
     # Top Five Files Generating Most Energy (Before Refinement)
-    top_five_energy_before = before_df.sort_values('Energy Consumed (Wh)', ascending=False).head(5)[['Application name', 'Energy Consumed (Wh)', 'solution dir']]
-    top_five_energy_before.rename(columns={'Application name': 'File Name', 'Energy Consumed (Wh)': 'Energy Consumed (Wh)', 'solution dir' : 'Solution Directory'}, inplace=True)
+    top_five_energy_before = before_df.sort_values('Energy Consumed (Wh)', ascending=False).head(5)[['Application name', 'Energy Consumed (Wh)']]
+    top_five_energy_before.rename(columns={'Application name': 'File Name', 'Energy Consumed (Wh)': 'Energy Consumed (Wh)'}, inplace=True)
     energy_table_html = top_five_energy_before.to_html(index=False, classes='table', border=0)
 
     # Top Five Files Generating Most Emissions (Before Refinement)
-    top_five_emissions_before = before_df.sort_values('Emissions (gCO2eq)', ascending=False).head(5)[['Application name', 'Emissions (gCO2eq)', 'solution dir']]
-    top_five_emissions_before.rename(columns={'Application name': 'File Name', 'Emissions (gCO2eq)': 'Emissions (gCO2eq)', 'solution dir' : 'Solution Directory'}, inplace=True)
+    top_five_emissions_before = before_df.sort_values('Emissions (gCO2eq)', ascending=False).head(5)[['Application name', 'Emissions (gCO2eq)']]
+    top_five_emissions_before.rename(columns={'Application name': 'File Name', 'Emissions (gCO2eq)': 'Emissions (gCO2eq)'}, inplace=True)
     emissions_table_html = top_five_emissions_before.to_html(index=False, classes='table', border=0)
 
     # === Feature 3: Emissions for Embedded and Non-Embedded Code ===
@@ -656,17 +707,17 @@ def generate_html_report(result_dir):
         # Convert non-embedded bar graph to HTML div
         div_bar_graph_non_embedded = pio.to_html(bar_graph_non_embedded, include_plotlyjs=False, full_html=False)
 
-    # === Generate the Report using Jinja2 Template ===
-    # Initialize Jinja2 environment
-    env = Environment(loader=FileSystemLoader(SOURCE_DIRECTORY))
-    template_path = 'report_template.html'
+    # # === Generate the Report using Jinja2 Template ===
+    # # Initialize Jinja2 environment
+    # env = Environment(loader=FileSystemLoader(SOURCE_DIRECTORY))
+    # template_path = 'report_template.html'
 
-    # Check if the template exists
-    if not os.path.isfile(os.path.join(SOURCE_DIRECTORY, template_path)):
-        print(f"HTML template file not found: {template_path}")
-        return
+    # # Check if the template exists
+    # if not os.path.isfile(os.path.join(SOURCE_DIRECTORY, template_path)):
+    #     print(f"HTML template file not found: {template_path}")
+    #     return
 
-    template = env.get_template(template_path)
+    # template = env.get_template(template_path)
 
     # Render the template with dynamic data
     html_content = template.render(
@@ -717,3 +768,4 @@ def generate_html_report(result_dir):
 
 # Generate HTML report
 generate_html_report(RESULT_DIR)
+
