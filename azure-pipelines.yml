@@ -17,45 +17,46 @@ variables:
   CLIENT_NAME: 'SAMPLE'
 
 stages:
-- stage: CloneRepository
-   displayName: 'Stage 1: Clone Repository'
+  - stage: CloneRepository
+    displayName: 'Stage 1: Clone Repository'
     jobs:
     - job: CloneRepository
       steps:
       - checkout: self
-    - script: |
-         echo "Client Name: $(CLIENT_NAME)"
-         echo "Repository is cloned to: $(Pipeline.Workspace)/s"
-- stage: TrackServerEmissions
-  displayName: 'Stage 2: Track Server Emissions'
-  jobs:
-  - job: TrackServerEmissions
-    steps:
-    - script: |
-        cd $(REPO_PATH)
-        $(PYTHON_PATH) server_emissions.py
-      continueOnError: true
- 
-- stage: GreenITCodeGeneration
-  displayName: 'Stage 3: Energy Efficient Code Generation'
-  jobs:
-  - job: GreenITCodeGeneration
-    steps:
-    - script: |
-        cd $(REPO_PATH)
-        $(PYTHON_PATH) GreenCodeRefiner.py
-      continueOnError: true
-      env:
-        PYTEST: $(PYTEST_PATH)
- 
-- stage: DynamicCodeAnalysis
-  displayName: 'Stage 4: Dynamic Code Analysis'
-  jobs:
-  - job: DynamicCodeAnalysis
-    steps:
-    - script: |
-        cd $(REPO_PATH)
-        $(PYTHON_PATH) track_emissions.py
-      continueOnError: true
-      env:
-        PYTEST: $(PYTEST_PATH)
+      - script: |
+          echo "Client Name: $(CLIENT_NAME)"
+          echo "Repository is cloned to: $(Pipeline.Workspace)/s"
+
+  - stage: TrackServerEmissions
+    displayName: 'Stage 2: Track Server Emissions'
+    jobs:
+    - job: TrackServerEmissions
+      steps:
+      - script: |
+          cd $(REPO_PATH)
+          $(PYTHON_PATH) server_emissions.py
+        continueOnError: true
+  
+  - stage: GreenITCodeGeneration
+    displayName: 'Stage 3: Energy Efficient Code Generation'
+    jobs:
+    - job: GreenITCodeGeneration
+      steps:
+      - script: |
+          cd $(REPO_PATH)
+          $(PYTHON_PATH) GreenCodeRefiner.py
+        continueOnError: true
+        env:
+          PYTEST: $(PYTEST_PATH)
+  
+  - stage: DynamicCodeAnalysis
+    displayName: 'Stage 4: Dynamic Code Analysis'
+    jobs:
+    - job: DynamicCodeAnalysis
+      steps:
+      - script: |
+          cd $(REPO_PATH)
+          $(PYTHON_PATH) track_emissions.py
+        continueOnError: true
+        env:
+          PYTEST: $(PYTEST_PATH)
