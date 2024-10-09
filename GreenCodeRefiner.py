@@ -10,14 +10,9 @@ from dotenv import load_dotenv
 from openai import AzureOpenAI
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
-# Define Base Directory
-BASE_DIR = '/app/project'
-
 # Load environment variables
-env_path = '/app/.env'
+env_path = os.path.abspath(".env")
 load_dotenv(dotenv_path=env_path, verbose=True, override=True)
-
 # Import functions from refiner_functions.py
 from RefinerFunction import (
     get_env_variable,
@@ -51,8 +46,8 @@ try:
 except EnvironmentError as e:
     logging.critical(f"Failed to initialize AzureOpenAI client: {e}")
     raise
-# Define directories based on BASE_DIR
-source_directory = BASE_DIR
+# Define directories
+source_directory = os.path.dirname(env_path)
 green_code_directory = os.path.join(source_directory, 'GreenCode')
 temp_directory = os.path.join(green_code_directory, 'temp')
 test_file_directory = os.path.join(source_directory, 'TestCases')
