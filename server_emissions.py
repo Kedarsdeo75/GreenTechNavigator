@@ -10,15 +10,12 @@ import socket
 from datetime import datetime
 from dotenv import load_dotenv
 
-# Define Base Directory
-BASE_DIR = '/app/project'
-
 # Load environment variables
-env_path = '/app/.env'
+env_path = os.path.abspath(".env")
 load_dotenv(dotenv_path=env_path, verbose=True, override=True)
 
 # Setup Logging
-LOG_FILE = os.path.join(BASE_DIR, 'server_emissions.log')
+LOG_FILE = os.path.join(os.path.dirname(env_path), 'server_emissions.log')
 logging.basicConfig(
     filename=LOG_FILE,
     level=logging.INFO,
@@ -32,8 +29,7 @@ BYTES_TO_GB = 1024 ** 3
 MILLI_WATTS_TO_KILOWATTS = 1000
 DEFAULT_SLEEP_TIME = int(os.getenv('DEFAULT_SLEEP_TIME', 20))
 RUN_TIME_IN_MINUTES = int(os.getenv('RUN_TIME_IN_MINUTES', 1))
-# RESULT_DIR = os.path.join(BASE_DIR, 'GreenCode')
-RESULT_DIR = os.path.join(BASE_DIR, 'Result')
+RESULT_DIR = os.path.join(os.path.dirname(env_path), 'Result')
 CSV_FILE = os.path.join(RESULT_DIR, 'server_data.csv')
 
 # Load CO2 emission factors from .env with defaults
@@ -247,6 +243,9 @@ def main():
     except Exception as e:
         logger.error(f"An error occurred in the main function: {e}")
         raise
+
+if __name__ == "__main__":
+    main()
 
 if __name__ == "__main__":
     main()
