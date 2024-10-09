@@ -7,11 +7,9 @@ pipeline {
 		PYTHON_PATH = "F:\\python\\python.exe"
 		PYTEST_PATH = "F:\\python\\Scripts\\pytest.exe"
 		PATH = "E:\\maven\\apache-maven-3.8.6-bin\\apache-maven-3.8.6\\bin;$PATH"
-		SHAREPOINT_PS_SCRIPT_PATH = 'C:\\ProgramData\\Jenkins\\.jenkins\\workspace\\GreenTechNavigator@2\\upload_to_sharepoint.ps1'
     }
-    
     stages {
-        stage('Stage 1: Clone Repository') {
+        stage('Stage 1: Cloning Your Repository') {
             steps {
                 echo "Project Name: ${env.PROJECT_NAME}"
                 ws("${env.REPO_PATH}") {
@@ -19,7 +17,7 @@ pipeline {
                 }
             }
         }
-        stage('Stage 2: Track Server Emissions') {
+        stage('Stage 2: Tracking Emission of the Server where Code will be Running') {
             steps {
                 dir("${env.REPO_PATH}") {
                     catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
@@ -28,29 +26,16 @@ pipeline {
                 }
             }
         }
-        stage('Stage 3: Green Code Refiner') {
+        stage('Stage 3: Converting your code to Green Code before running it on Server') {
             steps {
                 dir("${env.REPO_PATH}") {
                     catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                        script {
-                            def result = ''
-                            while (true) {
-                                result = bat(script: "${env.PYTHON_PATH} GreenCodeRefiner.py", returnStdout: true).trim()
-                                if (result.contains('Script-Has-Uploaded-All-Files')) {
-                                    break
-                                } else if (result.contains('Script-Has-Remain-Some-Files-To-Uploaded')) {
-                                    echo "Rerunning GreenCodeRefiner.py due to pending tasks..."
-                                } else {
-                                    error "Unexpected result from GreenCodeRefiner.py: ${result}"
-                                }
-                            }
-                        }
+                            bat "${env.PYTHON_PATH} GreenCodeRefiner.py"
                     }
                 }
             }
         }
-
-        stage('Stage 4: Dynamic Code Analysis') {
+        stage('Stage 4: Dynamic Code Emission Analysis of existing and Converted Code') {
             steps {
                 dir("${env.REPO_PATH}") {
                     withEnv(["PYTEST=${env.PYTEST_PATH}"]) {
@@ -61,22 +46,9 @@ pipeline {
                 }
             }
         }
-        stage('Stage 5: Compare emission') {
+        stage('Stage 5: Display Emission Report') {
             steps {
-                dir("${env.REPO_PATH}") {
-                    withEnv(["PYTEST=${env.PYTEST_PATH}"]) {
-                        catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                            bat "${env.PYTHON_PATH} compare_emissions.py"
-                        }
-                    }
-                }
-            }
-        }
-        stage('Stage 6: Update Dashboard') {
-            steps {
-                powershell """
-                & '${env.SHAREPOINT_PS_SCRIPT_PATH}'
-                """
+                echo "Emission Report is ready to be shown now for  : ${env.PROJECT_NAME}"
             }
         }
     }
