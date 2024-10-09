@@ -1,0 +1,61 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- main
+
+pool:
+  name: 'Default'
+
+variables:
+  PATH: 'C:\\Windows\\System32\\WindowsPowerShell\\v1.0;C:\\Users\\KD00937178\\AppData\\Local\\Programs\\apache-maven-3.9.9\\apache-maven\\src\\bin;$PATH'
+  REPO_PATH: 'C:\\Users\\KD00937178\\AppData\\vsts-agent-win-x64-3.239.1\\_work\\1\\s'
+  PYTHON_PATH: 'C:\\Users\\KD00937178\\AppData\\Local\\Programs\\Python\\Python313\\python.exe'
+  PYTEST_PATH: 'C:\\Users\\KD00937178\\AppData\\Local\\Programs\\Python\\Python313\\Scripts\\pytest.exe'
+  CLIENT_NAME: 'SAMPLE'
+
+stages:
+- stage: CloneRepository
+   displayName: 'Stage 1: Clone Repository'
+    jobs:
+    - job: CloneRepository
+      steps:
+      - checkout: self
+    - script: |
+         echo "Client Name: $(CLIENT_NAME)"
+         echo "Repository is cloned to: $(Pipeline.Workspace)/s"
+- stage: TrackServerEmissions
+  displayName: 'Stage 2: Track Server Emissions'
+  jobs:
+  - job: TrackServerEmissions
+    steps:
+    - script: |
+        cd $(REPO_PATH)
+        $(PYTHON_PATH) server_emissions.py
+      continueOnError: true
+ 
+- stage: GreenITCodeGeneration
+  displayName: 'Stage 3: Energy Efficient Code Generation'
+  jobs:
+  - job: GreenITCodeGeneration
+    steps:
+    - script: |
+        cd $(REPO_PATH)
+        $(PYTHON_PATH) GreenCodeRefiner.py
+      continueOnError: true
+      env:
+        PYTEST: $(PYTEST_PATH)
+ 
+- stage: DynamicCodeAnalysis
+  displayName: 'Stage 4: Dynamic Code Analysis'
+  jobs:
+  - job: DynamicCodeAnalysis
+    steps:
+    - script: |
+        cd $(REPO_PATH)
+        $(PYTHON_PATH) track_emissions.py
+      continueOnError: true
+      env:
+        PYTEST: $(PYTEST_PATH)
