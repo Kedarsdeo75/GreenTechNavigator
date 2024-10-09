@@ -11,7 +11,7 @@ pool:
 
 variables:
   PATH: 'C:\\Windows\\System32\\WindowsPowerShell\\v1.0;E:\\maven\\apache-maven-3.8.6-bin\\apache-maven-3.8.6\\bin;$PATH'
-  REPO_PATH: 'E:\\12)DevOps\\AzureAgent\\vsts-agent-win-x64-3.239.1\\_work\\1\\s'
+  REPO_PATH: 'E:\\Carbonpipeline\\vsts-agent-win-x64-3.245.0\\_work\\1\\s'
   PYTHON_PATH: 'F:\\python\\python.exe'
   PYTEST_PATH: 'F:\\python\\Scripts\\pytest.exe'
   CLIENT_NAME: 'Demo'
