@@ -10,11 +10,11 @@ pool:
   name: 'Default'
 
 variables:
-  PATH: 'C:\\Windows\\System32\\WindowsPowerShell\\v1.0;C:\\Users\\KD00937178\\AppData\\Local\\Programs\\apache-maven-3.9.9\\apache-maven\\src\\bin;$PATH'
-  REPO_PATH: 'C:\\Users\\KD00937178\\AppData\\vsts-agent-win-x64-3.239.1\\_work\\1\\s'
-  PYTHON_PATH: 'C:\\Users\\KD00937178\\AppData\\Local\\Programs\\Python\\Python313\\python.exe'
-  PYTEST_PATH: 'C:\\Users\\KD00937178\\AppData\\Local\\Programs\\Python\\Python313\\Scripts\\pytest.exe'
-  CLIENT_NAME: 'SAMPLE'
+  PATH: 'C:\\Windows\\System32\\WindowsPowerShell\\v1.0;E:\\maven\\apache-maven-3.8.6-bin\\apache-maven-3.8.6\\bin;$PATH'
+  REPO_PATH: 'E:\\12)DevOps\\AzureAgent\\vsts-agent-win-x64-3.239.1\\_work\\1\\s'
+  PYTHON_PATH: 'F:\\python\\python.exe'
+  PYTEST_PATH: 'F:\\python\\Scripts\\pytest.exe'
+  CLIENT_NAME: 'Demo'
 
 stages:
   - stage: CloneRepository
