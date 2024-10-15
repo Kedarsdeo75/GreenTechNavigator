@@ -38,7 +38,7 @@ run_scripts() {
     echo "Running server_emissions.py..."
     python /app/server_emissions.py
 
-    ######## For creating Market Place docker image, change this to AzureMaketplace.py to be able to run it from container..
+    # For creating Market Place docker image, change this to AzureMaketplace.py to be able to run it from container..
     echo "Running GreenCodeRefiner.py..."
     python /app/GreenCodeRefiner.py
 
