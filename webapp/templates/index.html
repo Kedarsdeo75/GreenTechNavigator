@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Green CodeRefiner Configuration</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Tech Mahindra Logo">
+        <h1>Green CodeRefiner</h1>
+    </header>
+
+    <!-- Hero Section -->
+    <div class="hero">
+        <h2>Scale at Speed</h2>
+        <p>Transform enterprises with agility, resilience, and efficiency using Green CodeRefiner.</p>
+        <button onclick="scrollToForm()">Get Started</button>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content fade-in">
+        <!-- Alert Box -->
+        <div id="alert-box" class="alert"></div>
+
+        <h3>Configuration</h3>
+        <form action="{{ url_for('save_config') }}" method="POST" onsubmit="return validateForm()">
+            <label for="report_path">Report Path:</label>
+            <input type="text" id="report_path" name="report_path" placeholder="path\of\your\solution\directory">
+
+            <label for="azure_model">Azure Model:</label>
+            <select id="azure_model" name="azure_model">
+                <option value="GPT4o">GPT4o</option>
+                <option value="gpt-4o-mini">gpt-4o-mini</option>
+            </select>
+
+            <h3>Configure Prompts</h3>
+            {% for i, prompt_text in [
+                (1, "Make the code more energy efficient"),
+                (2, "Eliminate any redundant or dead code"),
+                (3, "Simplify complex algorithms to reduce computational load"),
+                (4, "Optimize memory usage in the code"),
+                (5, "Reduce the number of dependencies"),
+                (6, "Refactor the code to reduce complexity"),
+                (7, "Test the code for edge cases")
+            ] %}
+                <label for="prompt_{{ i }}">Prompt {{ i }}: {{ prompt_text }}</label>
+                <select id="prompt_{{ i }}" name="prompt_{{ i }}" class="prompt-select">
+                    <option value="y">Yes</option>
+                    <option value="n">No</option>
+                </select>
+            {% endfor %}
+
+            <label for="prompt_generate_testcases">Generate Test Cases:</label>
+            <select id="prompt_generate_testcases" name="prompt_generate_testcases">
+                <option value="y">Yes</option>
+                <option value="n">No</option>
+            </select>
+
+            <input type="submit" value="Save Configuration">
+        </form>
+        <form method="POST" action="/run">
+            <input type="submit" value="Run Green CodeRefiner">
+        </form>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2024 Green CodeRefiner by Tech Mahindra</p>
+    </footer>
+
+    <script>
+        function validateForm() {
+            const reportPath = document.getElementById('report_path').value.trim();
+            const promptSelectors = document.querySelectorAll('.prompt-select');
+
+            if (!reportPath) {
+                showAlert("The 'Report Path' field is mandatory.");
+                return false;
+            }
+
+            let atLeastOneYes = false;
+            promptSelectors.forEach(selector => {
+                if (selector.value === "y") atLeastOneYes = true;
+            });
+
+            if (!atLeastOneYes) {
+                showAlert("At least one 'Configure Prompt' must be set to 'Yes'.");
+                return false;
+            }
+
+            return true;
+        }
+
+        function showAlert(message) {
+            const alertBox = document.getElementById('alert-box');
+            alertBox.textContent = message;
+            alertBox.style.display = "block";
+
+            setTimeout(() => alertBox.style.display = "none", 5000);
+        }
+
+        function scrollToForm() {
+            document.querySelector('.main-content').scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
