@@ -69,6 +69,9 @@
             font-size: 0.5em;
             color: #777777;
         }
+        .table-container {
+            overflow-x: auto;
+        }
         .right-column {
             display: flex;
             flex-direction: column;
@@ -140,11 +143,14 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
+            table-layout: fixed; /* Ensure table cells do not exceed box width */
+            word-wrap: break-word;  /* Ensure long words are broken and not hidden */
         }
         .table th, .table td {
             border: 1px solid #dddddd;
             text-align: left;
             padding: 8px;
+            overflow-wrap: break-word; /* Ensure long content wraps */
             
         }
         .table th {
