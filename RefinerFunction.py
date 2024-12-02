@@ -38,10 +38,15 @@ def check_azure_subscription(api_key, azure_endpoint, api_version):
         logging.error(f"An error occurred while checking Azure subscription: {e}")
         return False
 
+def handle_remove_error(func, path, exc_info):
+    """Custom error handler for shutil.rmtree."""
+    logging.error(f"Error removing {path}: {exc_info[1]}")
+
 def remove_directory(directory):
+    """Remove a directory and handle errors."""
     if os.path.exists(directory):
         try:
-            shutil.rmtree(directory, onerror=_handle_remove_error)
+            shutil.rmtree(directory, onerror=handle_remove_error)
             logging.info(f"Directory '{directory}' deleted successfully!")
         except Exception as e:
             logging.error(f"An unexpected error occurred while removing directory '{directory}': {e}")
@@ -71,11 +76,24 @@ def _handle_remove_error(func, path, exc_info):
 #         logging.info(f"Folder '{path}' created.")
 
 def ensure_directory_structure(path):
+    """Ensure that the directory structure exists."""
     try:
-        os.makedirs(path, exist_ok=True)
-        logging.info(f"Folder '{path}' created or already exists.")
+        if os.path.exists(path):
+            if os.path.isdir(path):
+                logging.info(f"Directory '{path}' already exists. Skipping creation.")
+            else:
+                logging.warning(f"'{path}' exists but is not a directory. Attempting to remove and recreate.")
+                os.remove(path)
+                os.makedirs(path)
+                logging.info(f"Directory '{path}' created successfully after removing the conflicting file.")
+        else:
+            os.makedirs(path)
+            logging.info(f"Directory '{path}' created successfully.")
+    except FileExistsError:
+        logging.warning(f"Directory '{path}' already exists. This error was safely handled.")
     except Exception as e:
-        logging.error(f"An error occurred while ensuring directory '{path}': {e}")
+        logging.error(f"An unexpected error occurred while ensuring directory '{path}': {e}")
+
 
 def identify_source_files(directory, extensions, excluded_files):
     for root, dirs, files in os.walk(directory):
