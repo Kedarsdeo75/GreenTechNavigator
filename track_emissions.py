@@ -407,14 +407,26 @@ def prepare_detailed_data(result_dir):
             'after': after_details
         }
     
+    # Close the database connections
+    conn_before.close()
+    conn_after.close()
+    conn_comparison.close()
+    
     return solution_dirs, detailed_data
+
+
 
 def generate_html_report(result_dir):
 
     # Initialize Jinja2 environment
     env = Environment(loader=FileSystemLoader(TEMP_DIR))
     template_path = 'report_template.html'
+    last_run_template_path = 'last_run_report_template.html'
     details_template_path = 'details_template.html'
+    last_run_details_template_path = 'last_run_details_template.html'
+
+    # Prepare detailed data
+    solution_dirs, detailed_data = prepare_detailed_data(RESULT_DIR)
  
     # Check if the templates exist
     if not os.path.isfile(os.path.join(TEMP_DIR, details_template_path)):
@@ -424,6 +436,16 @@ def generate_html_report(result_dir):
     if not os.path.isfile(os.path.join(TEMP_DIR, template_path)):
         logging.error(f"HTML template file not found: {template_path}")
         logging.error(f"Looking in: {os.path.join(TEMP_DIR, template_path)}")
+        return
+    
+    # Check if the last run templates exist
+    if not os.path.isfile(os.path.join(TEMP_DIR, last_run_details_template_path)):
+        logging.error(f"Detailed HTML template file not found: {last_run_details_template_path}")
+        logging.error(f"Looking in: {os.path.join(TEMP_DIR, last_run_details_template_path)}")
+        return 
+    if not os.path.isfile(os.path.join(TEMP_DIR, last_run_template_path)):
+        logging.error(f"HTML template file not found: {last_run_template_path}")
+        logging.error(f"Looking in: {os.path.join(TEMP_DIR, last_run_template_path)}")
         return
 
     # Load the templates
@@ -439,6 +461,21 @@ def generate_html_report(result_dir):
         logging.info(f"Loaded template: {details_template_path}")
     except Exception as e:
         logging.error(f"Failed to load template {details_template_path}: {e}")
+        return
+    
+    # Load the last run templates
+    try:
+        lastrun_template = env.get_template(last_run_template_path)
+        logging.info(f"Loaded template: {last_run_template_path}")
+    except Exception as e:
+        logging.error(f"Failed to load template {last_run_template_path}: {e}")
+        return
+    
+    try:
+        lastrun_details_template = env.get_template(last_run_details_template_path)
+        logging.info(f"Loaded template: {last_run_details_template_path}")
+    except Exception as e:
+        logging.error(f"Failed to load template {last_run_details_template_path}: {e}")
         return
 
     # Connect to the SQLite databases
@@ -984,54 +1021,56 @@ def generate_html_report(result_dir):
     )
 
     # Render the template with dynamic data
-    timestamp_html_content = template.render(
-        total_before=f"{latest_total_before:.6f}",
-        total_after=f"{latest_total_after:.6f}",
-        energy_table_html=latest_energy_table_html,
-        emissions_table_html=latest_emissions_table_html,
-        div_bar_graph_before=latest_div_bar_graph_before,
-        div_bar_graph_after=latest_div_bar_graph_after,
-        total_emissions_before=f"{latest_total_emissions_before:.6f}",
-        total_emissions_after=f"{latest_total_emissions_after:.6f}",
-        div_bar_graph_before_gco2eq=latest_div_bar_graph_before_gco2eq,
-        div_bar_graph_after_gco2eq=latest_div_bar_graph_after_gco2eq,
-        div_bar_graph_embedded=latest_div_bar_graph_embedded,
-        div_bar_graph_non_embedded=latest_div_bar_graph_non_embedded,
+    timestamp_html_content = lastrun_template.render(
+        latest_total_before=f"{latest_total_before:.6f}",
+        latest_total_after=f"{latest_total_after:.6f}",
+        latest_energy_table_html=latest_energy_table_html,
+        latest_emissions_table_html=latest_emissions_table_html,
+        latest_div_bar_graph_before=latest_div_bar_graph_before,
+        latest_div_bar_graph_after=latest_div_bar_graph_after,
+        latest_total_emissions_before=f"{latest_total_emissions_before:.6f}",
+        latest_total_emissions_after=f"{latest_total_emissions_after:.6f}",
+        latest_div_bar_graph_before_gco2eq=latest_div_bar_graph_before_gco2eq,
+        latest_div_bar_graph_after_gco2eq=latest_div_bar_graph_after_gco2eq,
+        latest_div_bar_graph_embedded=latest_div_bar_graph_embedded,
+        latest_div_bar_graph_non_embedded=latest_div_bar_graph_non_embedded,
         last_run_timestamp=last_run_timestamp  # Pass the timestamp
     )
 
     # Render the timestamp-based report template
-    timestamp_html_details_content = details_template.render(
+    timestamp_html_details_content = lastrun_details_template.render(
         solution_dirs=solution_dirs,
-        before_details=latest_before_details,
-        after_details=latest_after_details
+        latest_before_details=latest_before_details,
+        latest_after_details=latest_after_details
     )
 
     # === Finalizing the HTML Content ===
     # Create the current date folder inside REPORT_DIR
     current_date = datetime.now().strftime('%Y-%m-%d')
+    current_time = datetime.now().strftime('%H-%M')
     date_folder_path = os.path.join(REPORT_DIR, current_date)
-    if not os.path.exists(date_folder_path):
-        os.makedirs(date_folder_path)
-        logging.info(f"Directory '{date_folder_path}' created successfully!")
+    time_folder_path = os.path.join(date_folder_path, current_time)
+
+    # Create both date and time folders if they don't exist
+    if not os.path.exists(time_folder_path):
+        os.makedirs(time_folder_path)
+        logging.info(f"Directory '{time_folder_path}' created successfully!")
     else:
-        logging.info(f"Directory '{date_folder_path}' already exists.")
+        logging.info(f"Directory '{time_folder_path}' already exists.")
 
     # Save the timestamp-based HTML report
-    timestamp_details_report_name = f"Detailed_Report_{datetime.now().strftime('%H:%M')}.html"
-    timestamp_report_path = os.path.join(date_folder_path, timestamp_details_report_name)
-    with open(timestamp_report_path, 'w') as f:
+    details_report_path = os.path.join(time_folder_path, 'details_report.html')
+    with open(details_report_path, 'w') as f:
         f.write(timestamp_html_details_content)
 
-    logging.info(f"Timestamp-based Detailed HTML report generated at {timestamp_report_path}")
+    logging.info(f"Last Run Detailed HTML report generated at {details_report_path}")
 
     # Save the timestamp-based HTML report
-    timestamp_emissions_report_name = f"Emissions_Report_{datetime.now().strftime('%H:%M')}.html"
-    timestamp_report_path = os.path.join(date_folder_path, timestamp_emissions_report_name)
-    with open(timestamp_report_path, 'w') as f:
+    emissions_report_path = os.path.join(time_folder_path, 'emissions_report.html')
+    with open(emissions_report_path, 'w') as f:
         f.write(timestamp_html_content)
 
-    logging.info(f"Timestamp-based Emissions HTML report generated at {timestamp_report_path}")
+    logging.info(f"Last Run Emissions HTML report generated at {emissions_report_path}")
     
     # Create the report directory if it doesn't exist
     if not os.path.exists(REPORT_DIR):
@@ -1057,9 +1096,7 @@ def generate_html_report(result_dir):
     # Close the database connections
     conn_before.close()
     conn_after.close()
-
-# Prepare detailed data
-solution_dirs, detailed_data = prepare_detailed_data(RESULT_DIR)
+    comparison_csv.close()
 
 # Generate HTML report
 generate_html_report(RESULT_DIR)
