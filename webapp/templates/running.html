@@ -2,126 +2,156 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Running Code Refiner</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 40px;
-            text-align: center;
-        }
-        h2 {
-            color: #2c3e50;
-        }
-        /* Progress Bar */
-        .progress-bar {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 20px;
-            margin-bottom: 40px;
-        }
-        .step {
-            flex: 1;
-            padding: 10px;
-            color: #888;
-            font-weight: bold;
-        }
-        .completed {
-            color: #0056b3;
-            border-bottom: 2px solid #0056b3;
-        }
-        #status {
-            font-size: 1.2rem;
-            margin-top: 20px;
-            color: #333;
-        }
-        /* Running Container */
-        .running-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            text-align: center;
-        }
-        .running-container h2 {
-            font-size: 1.8rem;
-            color: #0056b3;
-            margin-top: 20px;
-        }
-        .running-container p {
-            font-size: 1rem;
-            color: #555;
-            margin-top: 10px;
-        }
-        /* Loader Animation */
-        .loader {
-            border: 6px solid #f3f3f3;
-            border-top: 6px solid #0056b3;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        /* Completion Icon */
-        .completion-icon {
-            display: none;
-            font-size: 2rem;
-            color: green;
-            margin-top: 20px;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Green CodeRefiner - Running</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='running.css') }}">
 </head>
 <body>
+    <header>
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Tech Mahindra Logo">
+        <div class="header-titles">
+            <h1 class="green">Green</h1>
+            <h1 class="coderefiner">CodeRefiner<sup style="font-size:10px; color:#2c3e50">TM</sup></h1>
+        </div>
+    </header>
+
     <div class="running-container">
-        <div class="loader"></div>
-        <div class="completion-icon" id="completion-icon">✔️</div>
-        <h2>Green Code Refiner is now running...</h2>
-        <p>Your code optimization has started. This may take a few moments.</p>
-        
+        <div class="progress-section">
+            <h2>Processing Your Code</h2>
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill"></div>
+                </div>
+                <div class="progress-status">
+                    <span id="status" class="progress-text">Initializing...</span>
+                    <span class="progress-percentage">0%</span>
+                </div>
+            </div>
+            
+            <div class="stages">
+                <div id="step1" class="stage" data-stage="1">
+                    <div class="stage-icon">1</div>
+                    <div class="stage-text">Server Emissions Analysis</div>
+                </div>
+                <div id="step2" class="stage" data-stage="2">
+                    <div class="stage-icon">2</div>
+                    <div class="stage-text">Azure Marketplace Analysis</div>
+                </div>
+                <div id="step3" class="stage" data-stage="3">
+                    <div class="stage-icon">3</div>
+                    <div class="stage-text">Emissions Tracking</div>
+                </div>
+            </div>
+
+            <div class="completion-message hidden">
+                <div class="checkmark">✓</div>
+                <h3>Process Complete!</h3>
+                <p>Your code has been successfully analyzed and optimized.</p>
+            </div>
+
+            <div class="report-section hidden">
+                <h3>Report Summary</h3>
+                <div class="report-content">
+                    <pre id="reportText" class="report-text">{{ report_url }}</pre>
+                    <button id="copyButton" class="copy-button" disabled>
+                        <span class="copy-icon">📋</span>
+                        <span class="button-text">Copy Report</span>
+                        <span class="tooltip">Processing in progress...</span>
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="progress-bar">
-        <div id="step1" class="step">Server Emissions</div>
-        <div id="step2" class="step">Green Code Refiner</div>
-        <div id="step3" class="step">Track Emissions</div>
-    </div>
-    <p id="status">Initializing...</p>
+
     <script>
-            const eventSource = new EventSource('/stream');
-            eventSource.onmessage = function(event) {
-                const log = event.data;
-                document.getElementById('status').textContent = log;
-                // Update progress bar based on keywords in the output
-                if (log.includes("Running server_emissions.py...")) {
-                    document.getElementById("step1").classList.add("completed");
-                } else if (log.includes("Server_emissions.py completed successfully.")) {
-                    document.getElementById("step1").classList.add("completed");
-                }
-                if (log.includes("Running AzureMarketplace.py...")) {
-                    document.getElementById("step2").classList.add("completed");
-                } else if (log.includes("AzureMarketplace.py completed successfully.")) {
-                    document.getElementById("step2").classList.add("completed");
-                }
-                if (log.includes("Running track_emissions.py...")) {
-                    document.getElementById("step3").classList.add("completed");
-                } else if (log.includes("track_emissions.py completed successfully.")) {
-                    document.getElementById("step3").classList.add("completed");
-                    
-                    document.getElementById('loader').style.opacity = '0';    
-                    setTimeout(() => {
-                        document.getElementById('loader').style.display = 'none';
-                        document.getElementById('completed-icon').style.display = 'block';
-                        setTimeout(() => {
-                            document.getElementById('completed-icon').style.opacity = '1';
-                        }, 50); // Delay to trigger CSS transition
-                    }, 300); // Delay to fade out the loader
-    
-                    eventSource.close();  // Close connection once all scripts are done
-                }
-            }; 
-        </script>
+        let currentProgress = 0;
+        const progressFill = document.querySelector('.progress-fill');
+        const progressPercentage = document.querySelector('.progress-percentage');
+        
+        function updateProgress(stage) {
+            let progress;
+            switch(stage) {
+                case 1:
+                    progress = 33;
+                    break;
+                case 2:
+                    progress = 66;
+                    break;
+                case 3:
+                    progress = 100;
+                    break;
+                default:
+                    progress = 0;
+            }
+            
+            progressFill.style.width = `${progress}%`;
+            progressPercentage.textContent = `${progress}%`;
+            
+            if (progress === 100) {
+                showCompletion();
+            }
+        }
+
+        function showCompletion() {
+            document.querySelector('.completion-message').classList.remove('hidden');
+            document.querySelector('.report-section').classList.remove('hidden');
+            
+            const copyButton = document.getElementById('copyButton');
+            copyButton.disabled = false;
+            copyButton.querySelector('.tooltip').textContent = 'Click to copy report';
+        }
+
+        // Initialize EventSource for streaming updates
+        const eventSource = new EventSource('/stream');
+        
+        eventSource.onmessage = function(event) {
+            const log = event.data;
+            document.getElementById('status').textContent = log;
+
+            // Update progress based on the streaming data
+            if (log.includes("Running server_emissions.py...")) {
+                document.getElementById("step1").classList.add("completed");
+                updateProgress(1);
+            } else if (log.includes("Server_emissions.py completed successfully.")) {
+                document.getElementById("step1").classList.add("completed");
+                updateProgress(1);
+            }
+
+            if (log.includes("Running AzureMarketplace.py...")) {
+                document.getElementById("step2").classList.add("completed");
+                updateProgress(2);
+            } else if (log.includes("AzureMarketplace.py completed successfully.")) {
+                document.getElementById("step2").classList.add("completed");
+                updateProgress(2);
+            }
+
+            if (log.includes("Running track_emissions.py...")) {
+                document.getElementById("step3").classList.add("completed");
+                updateProgress(3);
+            } else if (log.includes("track_emissions.py completed successfully.")) {
+                document.getElementById("step3").classList.add("completed");
+                updateProgress(3);
+                eventSource.close(); // Close connection once all scripts are done
+            }
+        };
+
+        // Copy functionality
+        document.getElementById('copyButton').addEventListener('click', async () => {
+            const reportText = document.getElementById('reportText').textContent;
+            try {
+                await navigator.clipboard.writeText(reportText);
+                const button = document.getElementById('copyButton');
+                button.classList.add('copied');
+                button.querySelector('.button-text').textContent = 'Copied!';
+                setTimeout(() => {
+                    button.classList.remove('copied');
+                    button.querySelector('.button-text').textContent = 'Copy Report';
+                }, 2000);
+            } catch (err) {
+                console.error('Failed to copy text:', err);
+            }
+        });
+    </script>
 </body>
 </html>
