@@ -11,22 +11,12 @@ pool:
 
 variables:
   PATH: 'C:\\Windows\\System32\\WindowsPowerShell\\v1.0;E:\\maven\\apache-maven-3.8.6-bin\\apache-maven-3.8.6\\bin;$PATH'
-  REPO_PATH: 'E:\\Carbonpipeline\\vsts-agent-win-x64-3.245.0\\_work\\1\\s'
+  REPO_PATH: 'D:\\DOCKER-GCR\\3-Dec-24\\GreenCodeScan-main'
   PYTHON_PATH: 'F:\\python\\python.exe'
   PYTEST_PATH: 'F:\\python\\Scripts\\pytest.exe'
   CLIENT_NAME: 'Demo'
 
 stages:
-  - stage: CloneRepository
-    displayName: 'Stage 1: Clone Repository'
-    jobs:
-    - job: CloneRepository
-      steps:
-      - checkout: self
-      - script: |
-          echo "Client Name: $(CLIENT_NAME)"
-          echo "Repository is cloned to: $(Pipeline.Workspace)/s"
-
   - stage: TrackServerEmissions
     displayName: 'Stage 2: Track Server Emissions'
     jobs:
