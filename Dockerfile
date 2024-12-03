@@ -13,10 +13,25 @@ WORKDIR /app
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     build-essential \
+    cmake \
+    g++ \
     maven \
     default-jdk \
     software-properties-common \
+    wget \
+    git \
     && rm -rf /var/lib/apt/lists/*
+
+# Install Google Test
+RUN mkdir -p /usr/src/gtest && \
+    cd /usr/src/gtest && \
+    wget https://github.com/google/googletest/archive/refs/tags/v1.14.0.tar.gz && \
+    tar -xzf v1.14.0.tar.gz && \
+    cd googletest-1.14.0 && \
+    cmake . && \
+    make && \
+    make install && \
+    ldconfig
 
 # # Install NUnit (for .NET projects)
 # RUN apt-get update && apt-get install -y \
@@ -47,6 +62,8 @@ RUN echo "PYTEST_PATH=$(which pytest)" >> .env
 RUN echo "MAVEN_PATH=$(which mvn)" >> .env
 RUN echo "JAVAC_PATH=$(which javac)" >> .env
 RUN echo "NUNIT_PATH=$(which nunit-console)" >> .env
+RUN echo "GTEST_PATH=/usr/src/gtest" >> .env
+RUN echo "GTEST_CMAKE_PATH=$(which cmake)" >> .env
 
 # Set additional environment variables
 ENV EXPECTED_PASSWORD=gcrtrial135#
